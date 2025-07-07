@@ -8,6 +8,7 @@
         <meta name="apple-mobile-web-app-capable" content="yes">
         <link rel="stylesheet" href="css/leaflet.css">
         <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/L.Control.Locate.min.css">
         <link rel="stylesheet" href="css/qgis2web.css">
         <link rel="stylesheet" href="css/fontawesome-all.min.css">
         <style>
@@ -17,8 +18,29 @@
             padding: 0;
             margin: 0;
         }
+	,info {
+		background: rgba(255, 255, 255, 0.95);
+		padding: 8px 12px;
+		border-radius: 6px;
+		box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    		max-width: 300px;
+    		margin-top: 10px;
+    		margin-left: 10px;
+    		font-size: 16px;
+		font-weight: bold;
+		line-height: 1.2;
+    		z-index: 9999;
+		word-wrap: break-word;
+	}
+	@media (max-width: 768px) {
+		.info {
+			margin-top: 60px;
+			max-width: 80vw;
+			font-size: 14px;
+		}
+	}
         </style>
-        <title>Maguindanao del Norte Interactive Map</title>
+        <title>Maguindanao del Norte Interactive Web Map</title>
     </head>
     <body>
         <div id="map">
@@ -26,7 +48,7 @@
         <script src="js/qgis2web_expressions.js"></script>
         <script src="js/leaflet.js"></script>
         <script src="js/L.Control.Layers.Tree.min.js"></script>
-        <script src="js/multi-style-layer.js"></script>
+        <script src="js/L.Control.Locate.min.js"></script>
         <script src="js/leaflet-svg-shape-markers.min.js"></script>
         <script src="js/leaflet.rotatedMarker.js"></script>
         <script src="js/leaflet.pattern.js"></script>
@@ -37,17 +59,20 @@
         <script src="js/labels.js"></script>
         <script src="data/MunicipalWaters_1.js"></script>
         <script src="data/MunicipalBoundary_2.js"></script>
-        <script src="data/CoastalResources_3.js"></script>
-        <script src="data/SoilType_4.js"></script>
-        <script src="data/GeologicalFeatures_5.js"></script>
-        <script src="data/ClimateType_6.js"></script>
-        <script src="data/LandClassification_7.js"></script>
-        <script src="data/MunicipalHalls_8.js"></script>
-        <script src="data/HealthFacilities_9.js"></script>
-        <script src="data/SchoolFacilities_10.js"></script>
+        <script src="data/RoadNetwork_3.js"></script>
+        <script src="data/CoastalResources_4.js"></script>
+        <script src="data/SoilType_5.js"></script>
+        <script src="data/GeologicalFeatures_6.js"></script>
+        <script src="data/ClimateType_7.js"></script>
+        <script src="data/LandClassification_8.js"></script>
+        <script src="data/RainInducedLandslide_9.js"></script>
+        <script src="data/RainInducedFlood_10.js"></script>
+        <script src="data/MunicipalHall_11.js"></script>
+        <script src="data/HealthFacilities_12.js"></script>
+        <script src="data/SchoolFacilities_13.js"></script>
         <script>
         var map = L.map('map', {
-            zoomControl:false, maxZoom:28, minZoom:1
+            zoomControl:false, maxZoom:15, minZoom:8
         })
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
@@ -87,7 +112,7 @@
             return this._div;
         };
         title.update = function () {
-            this._div.innerHTML = '<h2>Maguindanao del Norte Interactive Map</h2>';
+            this._div.innerHTML = '<div class="map-title">Maguindanao del Norte Interactive Web Map</div>';
         };
         title.addTo(map);
         var abstract = new L.Control({'position':'bottomleft'});
@@ -108,6 +133,7 @@
         var zoomControl = L.control.zoom({
             position: 'topleft'
         }).addTo(map);
+        L.control.locate({locateOptions: {maxZoom: 19}}).addTo(map);
         var bounds_group = new L.featureGroup([]);
         function setBounds() {
             if (bounds_group.getLayers().length) {
@@ -120,8 +146,8 @@
             pane: 'pane_OSMStandard_0',
             opacity: 1.0,
             attribution: '<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors, CC-BY-SA</a>',
-            minZoom: 1,
-            maxZoom: 28,
+            minZoom: 8,
+            maxZoom: 15,
             minNativeZoom: 0,
             maxNativeZoom: 19
         });
@@ -173,15 +199,11 @@
                         <td class="visible-with-data" id="Mun_Name">' + (feature.properties['Mun_Name'] !== null ? autolinker.link(String(feature.properties['Mun_Name']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
-                        <th scope="row">Land Area</th>\
-                        <td class="visible-with-data" id="Area(sqkm)">' + (feature.properties['Area(sqkm)'] !== null ? autolinker.link(String(feature.properties['Area(sqkm)']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">2020 Population</th>\
+                        <th scope="row">Population 2020</th>\
                         <td class="visible-with-data" id="Pop2020">' + (feature.properties['Pop2020'] !== null ? autolinker.link(String(feature.properties['Pop2020']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
-                        <th scope="row">2015 Population</th>\
+                        <th scope="row">Population 2015</th>\
                         <td class="visible-with-data" id="Pop2015">' + (feature.properties['Pop2015'] !== null ? autolinker.link(String(feature.properties['Pop2015']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                 </table>';
@@ -219,7 +241,7 @@
         });
         bounds_group.addLayer(layer_MunicipalBoundary_2);
         map.addLayer(layer_MunicipalBoundary_2);
-        function pop_CoastalResources_3(feature, layer) {
+        function pop_RoadNetwork_3(feature, layer) {
             var popupContent = '<table>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
@@ -229,38 +251,52 @@
 			layer.bindPopup(content, { maxHeight: 400 });
         }
 
-        var pattern_CoastalResources_3_1 = new L.StripePattern({
-            weight: 0.0,
-            spaceWeight: 4.0,
-            color: '#000000',
-            opacity: 1.0,
-            spaceOpacity: 0,
-            angle: 315
+        function style_RoadNetwork_3_0() {
+            return {
+                pane: 'pane_RoadNetwork_3',
+                opacity: 1,
+                color: 'rgba(128,128,128,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 1.0,
+                fillOpacity: 0,
+                interactive: false,
+            }
+        }
+        map.createPane('pane_RoadNetwork_3');
+        map.getPane('pane_RoadNetwork_3').style.zIndex = 403;
+        map.getPane('pane_RoadNetwork_3').style['mix-blend-mode'] = 'normal';
+        var layer_RoadNetwork_3 = new L.geoJson(json_RoadNetwork_3, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_RoadNetwork_3',
+            layerName: 'layer_RoadNetwork_3',
+            pane: 'pane_RoadNetwork_3',
+            onEachFeature: pop_RoadNetwork_3,
+            style: style_RoadNetwork_3_0,
         });
-        pattern_CoastalResources_3_1.addTo(map);
-        var pattern_CoastalResources_3_1 = new L.StripePattern({
-            weight: 0.0,
-            spaceWeight: 4.0,
-            color: '#000000',
-            opacity: 1.0,
-            spaceOpacity: 0,
-            angle: 315
-        });
-        pattern_CoastalResources_3_1.addTo(map);
-        var pattern_CoastalResources_3_1 = new L.StripePattern({
-            weight: 0.0,
-            spaceWeight: 4.0,
-            color: '#000000',
-            opacity: 1.0,
-            spaceOpacity: 0,
-            angle: 315
-        });
-        pattern_CoastalResources_3_1.addTo(map);
-        function style_CoastalResources_3_0(feature) {
+        bounds_group.addLayer(layer_RoadNetwork_3);
+        map.addLayer(layer_RoadNetwork_3);
+        function pop_CoastalResources_4(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Class</th>\
+                        <td class="visible-with-data" id="Class_name">' + (feature.properties['Class_name'] !== null ? autolinker.link(String(feature.properties['Class_name']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_CoastalResources_4_0(feature) {
             switch(String(feature.properties['Class_name'])) {
                 case 'Corals':
                     return {
-                pane: 'pane_CoastalResources_3',
+                pane: 'pane_CoastalResources_4',
                 opacity: 1,
                 color: 'rgba(0,0,0,1.0)',
                 dashArray: '',
@@ -275,7 +311,7 @@
                     break;
                 case 'Mangrove':
                     return {
-                pane: 'pane_CoastalResources_3',
+                pane: 'pane_CoastalResources_4',
                 opacity: 1,
                 color: 'rgba(0,100,0,1.0)',
                 dashArray: '',
@@ -290,7 +326,7 @@
                     break;
                 case 'Seagrass/Seaweeds':
                     return {
-                pane: 'pane_CoastalResources_3',
+                pane: 'pane_CoastalResources_4',
                 opacity: 1,
                 color: 'rgba(0,150,0,1.0)',
                 dashArray: '',
@@ -305,54 +341,23 @@
                     break;
             }
         }
-        function style_CoastalResources_3_1(feature) {
-            switch(String(feature.properties['Class_name'])) {
-                case 'Corals':
-                    return {
-                pane: 'pane_CoastalResources_3',
-                stroke: false,
-                fillOpacity: 1,
-                fillPattern: pattern_CoastalResources_3_1,
-                interactive: true,
-            }
-                    break;
-                case 'Mangrove':
-                    return {
-                pane: 'pane_CoastalResources_3',
-                stroke: false,
-                fillOpacity: 1,
-                fillPattern: pattern_CoastalResources_3_1,
-                interactive: true,
-            }
-                    break;
-                case 'Seagrass/Seaweeds':
-                    return {
-                pane: 'pane_CoastalResources_3',
-                stroke: false,
-                fillOpacity: 1,
-                fillPattern: pattern_CoastalResources_3_1,
-                interactive: true,
-            }
-                    break;
-            }
-        }
-        map.createPane('pane_CoastalResources_3');
-        map.getPane('pane_CoastalResources_3').style.zIndex = 403;
-        map.getPane('pane_CoastalResources_3').style['mix-blend-mode'] = 'normal';
-        var layer_CoastalResources_3 = new L.geoJson.multiStyle(json_CoastalResources_3, {
+        map.createPane('pane_CoastalResources_4');
+        map.getPane('pane_CoastalResources_4').style.zIndex = 404;
+        map.getPane('pane_CoastalResources_4').style['mix-blend-mode'] = 'normal';
+        var layer_CoastalResources_4 = new L.geoJson(json_CoastalResources_4, {
             attribution: '',
             interactive: true,
-            dataVar: 'json_CoastalResources_3',
-            layerName: 'layer_CoastalResources_3',
-            pane: 'pane_CoastalResources_3',
-            onEachFeature: pop_CoastalResources_3,
-            styles: [style_CoastalResources_3_0,style_CoastalResources_3_1,]
+            dataVar: 'json_CoastalResources_4',
+            layerName: 'layer_CoastalResources_4',
+            pane: 'pane_CoastalResources_4',
+            onEachFeature: pop_CoastalResources_4,
+            style: style_CoastalResources_4_0,
         });
-        bounds_group.addLayer(layer_CoastalResources_3);
-        function pop_SoilType_4(feature, layer) {
+        bounds_group.addLayer(layer_CoastalResources_4);
+        function pop_SoilType_5(feature, layer) {
             var popupContent = '<table>\
                     <tr>\
-                        <th scope="row">Type</th>\
+                        <th scope="row">Name</th>\
                         <td class="visible-with-data" id="SOILDESC">' + (feature.properties['SOILDESC'] !== null ? autolinker.link(String(feature.properties['SOILDESC']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                 </table>';
@@ -363,282 +368,11 @@
 			layer.bindPopup(content, { maxHeight: 400 });
         }
 
-        function style_SoilType_4_0(feature) {
+        function style_SoilType_5_0(feature) {
             switch(String(feature.properties['SOILDESC'])) {
                 case 'Balut clay loam':
                     return {
-                pane: 'pane_SoilType_4',
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1, 
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(215,25,28,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'Buldun sandy loam':
-                    return {
-                pane: 'pane_SoilType_4',
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1, 
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(225,65,46,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'Dalican clay loam':
-                    return {
-                pane: 'pane_SoilType_4',
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1, 
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(235,104,65,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'Faraon clay':
-                    return {
-                pane: 'pane_SoilType_4',
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1, 
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(245,144,83,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'Faraon clay / River wash':
-                    return {
-                pane: 'pane_SoilType_4',
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1, 
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(253,179,103,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'Hydrosol':
-                    return {
-                pane: 'pane_SoilType_4',
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1, 
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(254,201,128,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'Kabacan clay':
-                    return {
-                pane: 'pane_SoilType_4',
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1, 
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(254,223,153,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'Langkong sandy':
-                    return {
-                pane: 'pane_SoilType_4',
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1, 
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(255,244,178,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'Mountain soil (undifferentiated)':
-                    return {
-                pane: 'pane_SoilType_4',
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1, 
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(244,250,187,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'Parang clay loam':
-                    return {
-                pane: 'pane_SoilType_4',
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1, 
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(221,241,180,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'Pilar silt loam':
-                    return {
-                pane: 'pane_SoilType_4',
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1, 
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(199,232,173,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'San Manuel loam':
-                    return {
-                pane: 'pane_SoilType_4',
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1, 
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(177,223,166,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'Tamantaka clay':
-                    return {
-                pane: 'pane_SoilType_4',
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1, 
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(145,203,168,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'Tinamaga clay loam':
-                    return {
-                pane: 'pane_SoilType_4',
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1, 
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(111,179,174,1.0)',
-                interactive: true,
-            }
-                    break;
-                case 'Umingan silt loam':
-                    return {
-                pane: 'pane_SoilType_4',
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1, 
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(77,155,180,1.0)',
-                interactive: true,
-            }
-                    break;
-                default:
-                    return {
-                pane: 'pane_SoilType_4',
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1, 
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(43,131,186,1.0)',
-                interactive: true,
-            }
-                    break;
-            }
-        }
-        map.createPane('pane_SoilType_4');
-        map.getPane('pane_SoilType_4').style.zIndex = 404;
-        map.getPane('pane_SoilType_4').style['mix-blend-mode'] = 'normal';
-        var layer_SoilType_4 = new L.geoJson(json_SoilType_4, {
-            attribution: '',
-            interactive: true,
-            dataVar: 'json_SoilType_4',
-            layerName: 'layer_SoilType_4',
-            pane: 'pane_SoilType_4',
-            onEachFeature: pop_SoilType_4,
-            style: style_SoilType_4_0,
-        });
-        bounds_group.addLayer(layer_SoilType_4);
-        function pop_GeologicalFeatures_5(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <th scope="row">Description</th>\
-                        <td class="visible-with-data" id="DESCRIPT">' + (feature.properties['DESCRIPT'] !== null ? autolinker.link(String(feature.properties['DESCRIPT']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
-
-        function style_GeologicalFeatures_5_0(feature) {
-            switch(String(feature.properties['DESCRIPT'])) {
-                case 'CRETACEOUS-PALEOGENE':
-                    return {
-                pane: 'pane_GeologicalFeatures_5',
+                pane: 'pane_SoilType_5',
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -651,9 +385,9 @@
                 interactive: true,
             }
                     break;
-                case 'NEOGENE':
+                case 'Buldun sandy loam':
                     return {
-                pane: 'pane_GeologicalFeatures_5',
+                pane: 'pane_SoilType_5',
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -662,13 +396,13 @@
                 weight: 1, 
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(63,5,3,1.0)',
+                fillColor: 'rgba(58,6,3,1.0)',
                 interactive: true,
             }
                     break;
-                case 'OLIGOCENE-MIOCENE':
+                case 'Dalican clay loam':
                     return {
-                pane: 'pane_GeologicalFeatures_5',
+                pane: 'pane_SoilType_5',
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -677,13 +411,13 @@
                 weight: 1, 
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(85,2,1,1.0)',
+                fillColor: 'rgba(76,3,2,1.0)',
                 interactive: true,
             }
                     break;
-                case 'OLIGOCENE-MIOCENE (IGNEOUS ROCKS)':
+                case 'Faraon clay':
                     return {
-                pane: 'pane_GeologicalFeatures_5',
+                pane: 'pane_SoilType_5',
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -692,13 +426,13 @@
                 weight: 1, 
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(112,31,11,1.0)',
+                fillColor: 'rgba(93,3,1,1.0)',
                 interactive: true,
             }
                     break;
-                case 'OLIGOCENE-MIOCENE (SEDIMENTARY & METAMORPHIC ROCKS)':
+                case 'Faraon clay / River wash':
                     return {
-                pane: 'pane_GeologicalFeatures_5',
+                pane: 'pane_SoilType_5',
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -707,13 +441,13 @@
                 weight: 1, 
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(141,74,28,1.0)',
+                fillColor: 'rgba(116,37,14,1.0)',
                 interactive: true,
             }
                     break;
-                case 'PLIOCENE-PLEISTOCENE':
+                case 'Hydrosol':
                     return {
-                pane: 'pane_GeologicalFeatures_5',
+                pane: 'pane_SoilType_5',
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -722,13 +456,13 @@
                 weight: 1, 
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(170,119,45,1.0)',
+                fillColor: 'rgba(139,71,27,1.0)',
                 interactive: true,
             }
                     break;
-                case 'PLIOCENE-QUATERNARY':
+                case 'Kabacan clay':
                     return {
-                pane: 'pane_GeologicalFeatures_5',
+                pane: 'pane_SoilType_5',
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -737,13 +471,13 @@
                 weight: 1, 
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(199,164,62,1.0)',
+                fillColor: 'rgba(161,106,40,1.0)',
                 interactive: true,
             }
                     break;
-                case 'RECENT':
+                case 'Langkong sandy':
                     return {
-                pane: 'pane_GeologicalFeatures_5',
+                pane: 'pane_SoilType_5',
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -752,13 +486,13 @@
                 weight: 1, 
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(209,185,70,1.0)',
+                fillColor: 'rgba(185,141,53,1.0)',
                 interactive: true,
             }
                     break;
-                case 'UNDIFFERENTIATED (IGNEOUS ROCKS)':
+                case 'Mountain soil':
                     return {
-                pane: 'pane_GeologicalFeatures_5',
+                pane: 'pane_SoilType_5',
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -767,13 +501,13 @@
                 weight: 1, 
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(190,171,66,1.0)',
+                fillColor: 'rgba(208,177,67,1.0)',
                 interactive: true,
             }
                     break;
-                case 'Unknown':
+                case 'Parang clay loam':
                     return {
-                pane: 'pane_GeologicalFeatures_5',
+                pane: 'pane_SoilType_5',
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -782,13 +516,13 @@
                 weight: 1, 
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(171,157,61,1.0)',
+                fillColor: 'rgba(208,184,70,1.0)',
                 interactive: true,
             }
                     break;
-                case 'UPPER MIOCENE-PLIOCENE (SEDIMENTARY & ROCKS)':
+                case 'Pilar silt loam':
                     return {
-                pane: 'pane_GeologicalFeatures_5',
+                pane: 'pane_SoilType_5',
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -797,13 +531,58 @@
                 weight: 1, 
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(151,143,57,1.0)',
+                fillColor: 'rgba(193,173,66,1.0)',
                 interactive: true,
             }
                     break;
-                case 'WATER BODY':
+                case 'San Manuel loam':
                     return {
-                pane: 'pane_GeologicalFeatures_5',
+                pane: 'pane_SoilType_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(178,162,63,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Tamantaka clay':
+                    return {
+                pane: 'pane_SoilType_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(162,151,59,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Tinamaga clay loam':
+                    return {
+                pane: 'pane_SoilType_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(147,140,56,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Umingan silt loam':
+                    return {
+                pane: 'pane_SoilType_5',
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -818,23 +597,238 @@
                     break;
             }
         }
-        map.createPane('pane_GeologicalFeatures_5');
-        map.getPane('pane_GeologicalFeatures_5').style.zIndex = 405;
-        map.getPane('pane_GeologicalFeatures_5').style['mix-blend-mode'] = 'normal';
-        var layer_GeologicalFeatures_5 = new L.geoJson(json_GeologicalFeatures_5, {
+        map.createPane('pane_SoilType_5');
+        map.getPane('pane_SoilType_5').style.zIndex = 405;
+        map.getPane('pane_SoilType_5').style['mix-blend-mode'] = 'normal';
+        var layer_SoilType_5 = new L.geoJson(json_SoilType_5, {
             attribution: '',
             interactive: true,
-            dataVar: 'json_GeologicalFeatures_5',
-            layerName: 'layer_GeologicalFeatures_5',
-            pane: 'pane_GeologicalFeatures_5',
-            onEachFeature: pop_GeologicalFeatures_5,
-            style: style_GeologicalFeatures_5_0,
+            dataVar: 'json_SoilType_5',
+            layerName: 'layer_SoilType_5',
+            pane: 'pane_SoilType_5',
+            onEachFeature: pop_SoilType_5,
+            style: style_SoilType_5_0,
         });
-        bounds_group.addLayer(layer_GeologicalFeatures_5);
-        function pop_ClimateType_6(feature, layer) {
+        bounds_group.addLayer(layer_SoilType_5);
+        function pop_GeologicalFeatures_6(feature, layer) {
             var popupContent = '<table>\
                     <tr>\
-                        <th scope="row">Type</th>\
+                        <th scope="row">Code</th>\
+                        <td class="visible-with-data" id="CODE">' + (feature.properties['CODE'] !== null ? autolinker.link(String(feature.properties['CODE']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Description</th>\
+                        <td class="visible-with-data" id="DESCRIPT">' + (feature.properties['DESCRIPT'] !== null ? autolinker.link(String(feature.properties['DESCRIPT']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_GeologicalFeatures_6_0(feature) {
+            switch(String(feature.properties['CODE'])) {
+                case 'IN1':
+                    return {
+                pane: 'pane_GeologicalFeatures_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(215,25,28,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'KPg2':
+                    return {
+                pane: 'pane_GeologicalFeatures_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(228,75,51,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'N1':
+                    return {
+                pane: 'pane_GeologicalFeatures_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(240,124,74,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'N3+Q1':
+                    return {
+                pane: 'pane_GeologicalFeatures_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(253,174,97,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'NI':
+                    return {
+                pane: 'pane_GeologicalFeatures_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(254,201,128,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'QVP':
+                    return {
+                pane: 'pane_GeologicalFeatures_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(254,228,160,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'R':
+                    return {
+                pane: 'pane_GeologicalFeatures_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,255,191,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'SN1':
+                    return {
+                pane: 'pane_GeologicalFeatures_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(227,244,182,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'SN2':
+                    return {
+                pane: 'pane_GeologicalFeatures_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(199,232,173,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'UC':
+                    return {
+                pane: 'pane_GeologicalFeatures_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(171,221,164,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Unknown':
+                    return {
+                pane: 'pane_GeologicalFeatures_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(128,191,171,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'waterbody':
+                    return {
+                pane: 'pane_GeologicalFeatures_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(86,161,179,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_GeologicalFeatures_6');
+        map.getPane('pane_GeologicalFeatures_6').style.zIndex = 406;
+        map.getPane('pane_GeologicalFeatures_6').style['mix-blend-mode'] = 'normal';
+        var layer_GeologicalFeatures_6 = new L.geoJson(json_GeologicalFeatures_6, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_GeologicalFeatures_6',
+            layerName: 'layer_GeologicalFeatures_6',
+            pane: 'pane_GeologicalFeatures_6',
+            onEachFeature: pop_GeologicalFeatures_6,
+            style: style_GeologicalFeatures_6_0,
+        });
+        bounds_group.addLayer(layer_GeologicalFeatures_6);
+        function pop_ClimateType_7(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Description</th>\
                         <td class="visible-with-data" id="Climate_ty">' + (feature.properties['Climate_ty'] !== null ? autolinker.link(String(feature.properties['Climate_ty']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                 </table>';
@@ -845,11 +839,11 @@
 			layer.bindPopup(content, { maxHeight: 400 });
         }
 
-        function style_ClimateType_6_0(feature) {
-            switch(String(feature.properties['Climate_ty'])) {
-                case 'Type III-Season not very pronounced dry from Nov-April & wet during the rest of the year':
+        function style_ClimateType_7_0(feature) {
+            switch(String(feature.properties['Cimate'])) {
+                case 'Type 3':
                     return {
-                pane: 'pane_ClimateType_6',
+                pane: 'pane_ClimateType_7',
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -858,19 +852,19 @@
                 weight: 1.0, 
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(255,234,1,1.0)',
+                fillColor: 'rgba(255,255,0,1.0)',
                 interactive: true,
             }
                     break;
-                case 'Type IV- Rainfall more or less evely distributed througout the year':
+                case 'Type 4':
                     return {
-                pane: 'pane_ClimateType_6',
+                pane: 'pane_ClimateType_7',
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
                 lineCap: 'butt',
                 lineJoin: 'miter',
-                weight: 1.0, 
+                weight: 1, 
                 fill: true,
                 fillOpacity: 1,
                 fillColor: 'rgba(0,128,0,1.0)',
@@ -879,23 +873,23 @@
                     break;
             }
         }
-        map.createPane('pane_ClimateType_6');
-        map.getPane('pane_ClimateType_6').style.zIndex = 406;
-        map.getPane('pane_ClimateType_6').style['mix-blend-mode'] = 'normal';
-        var layer_ClimateType_6 = new L.geoJson(json_ClimateType_6, {
+        map.createPane('pane_ClimateType_7');
+        map.getPane('pane_ClimateType_7').style.zIndex = 407;
+        map.getPane('pane_ClimateType_7').style['mix-blend-mode'] = 'normal';
+        var layer_ClimateType_7 = new L.geoJson(json_ClimateType_7, {
             attribution: '',
             interactive: true,
-            dataVar: 'json_ClimateType_6',
-            layerName: 'layer_ClimateType_6',
-            pane: 'pane_ClimateType_6',
-            onEachFeature: pop_ClimateType_6,
-            style: style_ClimateType_6_0,
+            dataVar: 'json_ClimateType_7',
+            layerName: 'layer_ClimateType_7',
+            pane: 'pane_ClimateType_7',
+            onEachFeature: pop_ClimateType_7,
+            style: style_ClimateType_7_0,
         });
-        bounds_group.addLayer(layer_ClimateType_6);
-        function pop_LandClassification_7(feature, layer) {
+        bounds_group.addLayer(layer_ClimateType_7);
+        function pop_LandClassification_8(feature, layer) {
             var popupContent = '<table>\
                     <tr>\
-                        <th scope="row">Category</th>\
+                        <th scope="row">Class</th>\
                         <td class="visible-with-data" id="STATUS">' + (feature.properties['STATUS'] !== null ? autolinker.link(String(feature.properties['STATUS']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                 </table>';
@@ -906,26 +900,41 @@
 			layer.bindPopup(content, { maxHeight: 400 });
         }
 
-        function style_LandClassification_7_0(feature) {
+        function style_LandClassification_8_0(feature) {
             switch(String(feature.properties['STATUS'])) {
-                case 'A and D':
+                case 'Alienable and Disposable':
                     return {
-                pane: 'pane_LandClassification_7',
+                pane: 'pane_LandClassification_8',
                 opacity: 1,
-                color: 'rgba(0,0,0,1.0)',
+                color: 'rgba(255,255,0,1.0)',
                 dashArray: '',
                 lineCap: 'butt',
                 lineJoin: 'miter',
-                weight: 1, 
+                weight: 1.0, 
                 fill: true,
                 fillOpacity: 1,
                 fillColor: 'rgba(255,255,0,1.0)',
                 interactive: true,
             }
                     break;
-                case 'FL (Mangrove)':
+                case 'Forestland (Upland)':
                     return {
-                pane: 'pane_LandClassification_7',
+                pane: 'pane_LandClassification_8',
+                opacity: 1,
+                color: 'rgba(0,150,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,150,0,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Forestland (Mangrove)':
+                    return {
+                pane: 'pane_LandClassification_8',
                 opacity: 1,
                 color: 'rgba(0,100,0,1.0)',
                 dashArray: '',
@@ -938,37 +947,201 @@
                 interactive: true,
             }
                     break;
-                case 'FL (Upland)':
+            }
+        }
+        map.createPane('pane_LandClassification_8');
+        map.getPane('pane_LandClassification_8').style.zIndex = 408;
+        map.getPane('pane_LandClassification_8').style['mix-blend-mode'] = 'normal';
+        var layer_LandClassification_8 = new L.geoJson(json_LandClassification_8, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_LandClassification_8',
+            layerName: 'layer_LandClassification_8',
+            pane: 'pane_LandClassification_8',
+            onEachFeature: pop_LandClassification_8,
+            style: style_LandClassification_8_0,
+        });
+        bounds_group.addLayer(layer_LandClassification_8);
+        function pop_RainInducedLandslide_9(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Susceptibility</th>\
+                        <td class="visible-with-data" id="LndslideSu">' + (feature.properties['LndslideSu'] !== null ? autolinker.link(String(feature.properties['LndslideSu']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_RainInducedLandslide_9_0(feature) {
+            switch(String(feature.properties['LndslideSu'])) {
+                case 'Low':
                     return {
-                pane: 'pane_LandClassification_7',
+                pane: 'pane_RainInducedLandslide_9',
                 opacity: 1,
-                color: 'rgba(0,0,0,1.0)',
-                dashArray: '5.0,1.0,2.0,1.0,2.0,1.0',
+                color: 'rgba(255,255,0,1.0)',
+                dashArray: '',
                 lineCap: 'butt',
                 lineJoin: 'miter',
-                weight: 1, 
+                weight: 1.0, 
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(0,150,0,1.0)',
+                fillColor: 'rgba(255,255,0,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Moderate':
+                    return {
+                pane: 'pane_RainInducedLandslide_9',
+                opacity: 1,
+                color: 'rgba(0,128,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,128,0,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'High':
+                    return {
+                pane: 'pane_RainInducedLandslide_9',
+                opacity: 1,
+                color: 'rgba(254,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(254,0,0,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Very High':
+                    return {
+                pane: 'pane_RainInducedLandslide_9',
+                opacity: 1,
+                color: 'rgba(144,36,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(144,36,0,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Debris Flow':
+                    return {
+                pane: 'pane_RainInducedLandslide_9',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(35,35,35,1.0)',
                 interactive: true,
             }
                     break;
             }
         }
-        map.createPane('pane_LandClassification_7');
-        map.getPane('pane_LandClassification_7').style.zIndex = 407;
-        map.getPane('pane_LandClassification_7').style['mix-blend-mode'] = 'normal';
-        var layer_LandClassification_7 = new L.geoJson(json_LandClassification_7, {
+        map.createPane('pane_RainInducedLandslide_9');
+        map.getPane('pane_RainInducedLandslide_9').style.zIndex = 409;
+        map.getPane('pane_RainInducedLandslide_9').style['mix-blend-mode'] = 'normal';
+        var layer_RainInducedLandslide_9 = new L.geoJson(json_RainInducedLandslide_9, {
             attribution: '',
             interactive: true,
-            dataVar: 'json_LandClassification_7',
-            layerName: 'layer_LandClassification_7',
-            pane: 'pane_LandClassification_7',
-            onEachFeature: pop_LandClassification_7,
-            style: style_LandClassification_7_0,
+            dataVar: 'json_RainInducedLandslide_9',
+            layerName: 'layer_RainInducedLandslide_9',
+            pane: 'pane_RainInducedLandslide_9',
+            onEachFeature: pop_RainInducedLandslide_9,
+            style: style_RainInducedLandslide_9_0,
         });
-        bounds_group.addLayer(layer_LandClassification_7);
-        function pop_MunicipalHalls_8(feature, layer) {
+        bounds_group.addLayer(layer_RainInducedLandslide_9);
+        map.addLayer(layer_RainInducedLandslide_9);
+        function pop_RainInducedFlood_10(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Susceptibility</th>\
+                        <td class="visible-with-data" id="FloodSusc">' + (feature.properties['FloodSusc'] !== null ? autolinker.link(String(feature.properties['FloodSusc']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_RainInducedFlood_10_0(feature) {
+            switch(String(feature.properties['FloodSusc'])) {
+                case 'Low':
+                    return {
+                pane: 'pane_RainInducedFlood_10',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(227,210,255,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Moderate':
+                    return {
+                pane: 'pane_RainInducedFlood_10',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(175,69,255,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'High':
+                    return {
+                pane: 'pane_RainInducedFlood_10',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(90,0,254,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Very High':
+                    return {
+                pane: 'pane_RainInducedFlood_10',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,37,115,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_RainInducedFlood_10');
+        map.getPane('pane_RainInducedFlood_10').style.zIndex = 410;
+        map.getPane('pane_RainInducedFlood_10').style['mix-blend-mode'] = 'normal';
+        var layer_RainInducedFlood_10 = new L.geoJson(json_RainInducedFlood_10, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_RainInducedFlood_10',
+            layerName: 'layer_RainInducedFlood_10',
+            pane: 'pane_RainInducedFlood_10',
+            onEachFeature: pop_RainInducedFlood_10,
+            style: style_RainInducedFlood_10_0,
+        });
+        bounds_group.addLayer(layer_RainInducedFlood_10);
+        map.addLayer(layer_RainInducedFlood_10);
+        function pop_MunicipalHall_11(feature, layer) {
             var popupContent = '<table>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
@@ -978,9 +1151,9 @@
 			layer.bindPopup(content, { maxHeight: 400 });
         }
 
-        function style_MunicipalHalls_8_0() {
+        function style_MunicipalHall_11_0() {
             return {
-                pane: 'pane_MunicipalHalls_8',
+                pane: 'pane_MunicipalHall_11',
                 shape: 'triangle',
                 radius: 10.0,
                 opacity: 1,
@@ -995,31 +1168,31 @@
                 interactive: false,
             }
         }
-        map.createPane('pane_MunicipalHalls_8');
-        map.getPane('pane_MunicipalHalls_8').style.zIndex = 408;
-        map.getPane('pane_MunicipalHalls_8').style['mix-blend-mode'] = 'normal';
-        var layer_MunicipalHalls_8 = new L.geoJson(json_MunicipalHalls_8, {
+        map.createPane('pane_MunicipalHall_11');
+        map.getPane('pane_MunicipalHall_11').style.zIndex = 411;
+        map.getPane('pane_MunicipalHall_11').style['mix-blend-mode'] = 'normal';
+        var layer_MunicipalHall_11 = new L.geoJson(json_MunicipalHall_11, {
             attribution: '',
             interactive: false,
-            dataVar: 'json_MunicipalHalls_8',
-            layerName: 'layer_MunicipalHalls_8',
-            pane: 'pane_MunicipalHalls_8',
-            onEachFeature: pop_MunicipalHalls_8,
+            dataVar: 'json_MunicipalHall_11',
+            layerName: 'layer_MunicipalHall_11',
+            pane: 'pane_MunicipalHall_11',
+            onEachFeature: pop_MunicipalHall_11,
             pointToLayer: function (feature, latlng) {
                 var context = {
                     feature: feature,
                     variables: {}
                 };
-                return L.shapeMarker(latlng, style_MunicipalHalls_8_0(feature));
+                return L.shapeMarker(latlng, style_MunicipalHall_11_0(feature));
             },
         });
-        bounds_group.addLayer(layer_MunicipalHalls_8);
-        map.addLayer(layer_MunicipalHalls_8);
-        function pop_HealthFacilities_9(feature, layer) {
+        bounds_group.addLayer(layer_MunicipalHall_11);
+        map.addLayer(layer_MunicipalHall_11);
+        function pop_HealthFacilities_12(feature, layer) {
             var popupContent = '<table>\
                     <tr>\
                         <th scope="row">Type</th>\
-                        <td class="visible-with-data" id="typeofheal">' + (feature.properties['typeofheal'] !== null ? autolinker.link(String(feature.properties['typeofheal']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                        <td class="visible-with-data" id="style">' + (feature.properties['style'] !== null ? autolinker.link(String(feature.properties['style']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
@@ -1029,38 +1202,115 @@
 			layer.bindPopup(content, { maxHeight: 400 });
         }
 
-        function style_HealthFacilities_9_0() {
-            return {
-                pane: 'pane_HealthFacilities_9',
-        rotationAngle: 0.0,
-        rotationOrigin: 'center center',
-        icon: L.icon({
-            iconUrl: 'markers/HealthFacilities_9.svg',
-            iconSize: [19.0, 19.0]
-        }),
+        function style_HealthFacilities_12_0(feature) {
+            switch(String(feature.properties['style'])) {
+                case 'Barangay Health Station':
+                    return {
+                pane: 'pane_HealthFacilities_12',
+                shape: 'triangle',
+                radius: 9.6,
+                opacity: 1,
+                color: 'rgba(255,255,255,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(81,117,217,1.0)',
                 interactive: true,
             }
+                    break;
+                case 'Birthing Home':
+                    return {
+                pane: 'pane_HealthFacilities_12',
+                shape: 'triangle',
+                radius: 9.6,
+                opacity: 1,
+                color: 'rgba(255,255,255,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(233,57,107,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Hospital':
+                    return {
+                pane: 'pane_HealthFacilities_12',
+                shape: 'triangle',
+                radius: 9.6,
+                opacity: 1,
+                color: 'rgba(255,255,255,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(26,205,154,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Infirmary':
+                    return {
+                pane: 'pane_HealthFacilities_12',
+                shape: 'triangle',
+                radius: 9.6,
+                opacity: 1,
+                color: 'rgba(255,255,255,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(231,189,84,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Rural Health Unit':
+                    return {
+                pane: 'pane_HealthFacilities_12',
+                shape: 'triangle',
+                radius: 9.6,
+                opacity: 1,
+                color: 'rgba(255,255,255,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(152,13,202,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
         }
-        map.createPane('pane_HealthFacilities_9');
-        map.getPane('pane_HealthFacilities_9').style.zIndex = 409;
-        map.getPane('pane_HealthFacilities_9').style['mix-blend-mode'] = 'normal';
-        var layer_HealthFacilities_9 = new L.geoJson(json_HealthFacilities_9, {
+        map.createPane('pane_HealthFacilities_12');
+        map.getPane('pane_HealthFacilities_12').style.zIndex = 412;
+        map.getPane('pane_HealthFacilities_12').style['mix-blend-mode'] = 'normal';
+        var layer_HealthFacilities_12 = new L.geoJson(json_HealthFacilities_12, {
             attribution: '',
             interactive: true,
-            dataVar: 'json_HealthFacilities_9',
-            layerName: 'layer_HealthFacilities_9',
-            pane: 'pane_HealthFacilities_9',
-            onEachFeature: pop_HealthFacilities_9,
+            dataVar: 'json_HealthFacilities_12',
+            layerName: 'layer_HealthFacilities_12',
+            pane: 'pane_HealthFacilities_12',
+            onEachFeature: pop_HealthFacilities_12,
             pointToLayer: function (feature, latlng) {
                 var context = {
                     feature: feature,
                     variables: {}
                 };
-                return L.marker(latlng, style_HealthFacilities_9_0(feature));
+                return L.shapeMarker(latlng, style_HealthFacilities_12_0(feature));
             },
         });
-        bounds_group.addLayer(layer_HealthFacilities_9);
-        function pop_SchoolFacilities_10(feature, layer) {
+        bounds_group.addLayer(layer_HealthFacilities_12);
+        function pop_SchoolFacilities_13(feature, layer) {
             var popupContent = '<table>\
                     <tr>\
                         <th scope="row">Name</th>\
@@ -1074,46 +1324,54 @@
 			layer.bindPopup(content, { maxHeight: 400 });
         }
 
-        function style_SchoolFacilities_10_0() {
+        function style_SchoolFacilities_13_0() {
             return {
-                pane: 'pane_SchoolFacilities_10',
-        rotationAngle: 0.0,
-        rotationOrigin: 'center center',
-        icon: L.icon({
-            iconUrl: 'markers/SchoolFacilities_10.svg',
-            iconSize: [19.0, 19.0]
-        }),
+                pane: 'pane_SchoolFacilities_13',
+                shape: 'square',
+                radius: 6.0,
+                opacity: 1,
+                color: 'rgba(255,255,255,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,0,255,1.0)',
                 interactive: true,
             }
         }
-        map.createPane('pane_SchoolFacilities_10');
-        map.getPane('pane_SchoolFacilities_10').style.zIndex = 410;
-        map.getPane('pane_SchoolFacilities_10').style['mix-blend-mode'] = 'normal';
-        var layer_SchoolFacilities_10 = new L.geoJson(json_SchoolFacilities_10, {
+        map.createPane('pane_SchoolFacilities_13');
+        map.getPane('pane_SchoolFacilities_13').style.zIndex = 413;
+        map.getPane('pane_SchoolFacilities_13').style['mix-blend-mode'] = 'normal';
+        var layer_SchoolFacilities_13 = new L.geoJson(json_SchoolFacilities_13, {
             attribution: '',
             interactive: true,
-            dataVar: 'json_SchoolFacilities_10',
-            layerName: 'layer_SchoolFacilities_10',
-            pane: 'pane_SchoolFacilities_10',
-            onEachFeature: pop_SchoolFacilities_10,
+            dataVar: 'json_SchoolFacilities_13',
+            layerName: 'layer_SchoolFacilities_13',
+            pane: 'pane_SchoolFacilities_13',
+            onEachFeature: pop_SchoolFacilities_13,
             pointToLayer: function (feature, latlng) {
                 var context = {
                     feature: feature,
                     variables: {}
                 };
-                return L.marker(latlng, style_SchoolFacilities_10_0(feature));
+                return L.shapeMarker(latlng, style_SchoolFacilities_13_0(feature));
             },
         });
-        bounds_group.addLayer(layer_SchoolFacilities_10);
+        bounds_group.addLayer(layer_SchoolFacilities_13);
         var overlaysTree = [
-            {label: '<img src="legend/SchoolFacilities_10.png" /> School Facilities', layer: layer_SchoolFacilities_10},
-            {label: '<img src="legend/HealthFacilities_9.png" /> Health Facilities', layer: layer_HealthFacilities_9},
-            {label: '<img src="legend/MunicipalHalls_8.png" /> Municipal Halls', layer: layer_MunicipalHalls_8},
-            {label: 'Land Classification<br /><table><tr><td style="text-align: center;"><img src="legend/LandClassification_7_AlienableandDisposable0.png" /></td><td>Alienable and Disposable</td></tr><tr><td style="text-align: center;"><img src="legend/LandClassification_7_ForestlandMangarove1.png" /></td><td>Forestland (Mangarove)</td></tr><tr><td style="text-align: center;"><img src="legend/LandClassification_7_ForestlandUpland2.png" /></td><td>Forestland (Upland)</td></tr></table>', layer: layer_LandClassification_7},
-            {label: 'Climate Type<br /><table><tr><td style="text-align: center;"><img src="legend/ClimateType_6_TypeIIISeasonnotverypronounceddryfromNovAprilwetduringtherestoftheyear0.png" /></td><td>Type III-Season not very pronounced dry from Nov-April & wet during the rest of the year</td></tr><tr><td style="text-align: center;"><img src="legend/ClimateType_6_TypeIVRainfallmoreorlessevelydistributedthrougouttheyear1.png" /></td><td>Type IV- Rainfall more or less evely distributed througout the year</td></tr></table>', layer: layer_ClimateType_6},
-            {label: 'Geological Features<br /><table><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_5_CRETACEOUSPALEOGENE0.png" /></td><td>CRETACEOUS-PALEOGENE</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_5_NEOGENE1.png" /></td><td>NEOGENE</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_5_OLIGOCENEMIOCENE2.png" /></td><td>OLIGOCENE-MIOCENE</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_5_OLIGOCENEMIOCENEIGNEOUSROCKS3.png" /></td><td>OLIGOCENE-MIOCENE (IGNEOUS ROCKS)</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_5_OLIGOCENEMIOCENESEDIMENTARYMETAMORPHICROCKS4.png" /></td><td>OLIGOCENE-MIOCENE (SEDIMENTARY & METAMORPHIC ROCKS)</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_5_PLIOCENEPLEISTOCENE5.png" /></td><td>PLIOCENE-PLEISTOCENE</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_5_PLIOCENEQUATERNARY6.png" /></td><td>PLIOCENE-QUATERNARY</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_5_RECENT7.png" /></td><td>RECENT</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_5_UNDIFFERENTIATEDIGNEOUSROCKS8.png" /></td><td>UNDIFFERENTIATED (IGNEOUS ROCKS)</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_5_Unknown9.png" /></td><td>Unknown</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_5_UPPERMIOCENEPLIOCENESEDIMENTARYROCKS10.png" /></td><td>UPPER MIOCENE-PLIOCENE (SEDIMENTARY & ROCKS)</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_5_WATERBODY11.png" /></td><td>WATER BODY</td></tr></table>', layer: layer_GeologicalFeatures_5},
-            {label: 'Soil Type<br /><table><tr><td style="text-align: center;"><img src="legend/SoilType_4_Balutclayloam0.png" /></td><td>Balut clay loam</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_4_Buldunsandyloam1.png" /></td><td>Buldun sandy loam</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_4_Dalicanclayloam2.png" /></td><td>Dalican clay loam</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_4_Faraonclay3.png" /></td><td>Faraon clay</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_4_FaraonclayRiverwash4.png" /></td><td>Faraon clay / River wash</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_4_Hydrosol5.png" /></td><td>Hydrosol</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_4_Kabacanclay6.png" /></td><td>Kabacan clay</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_4_Langkongsandy7.png" /></td><td>Langkong sandy</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_4_Mountainsoilundifferentiated8.png" /></td><td>Mountain soil (undifferentiated)</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_4_Parangclayloam9.png" /></td><td>Parang clay loam</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_4_Pilarsiltloam10.png" /></td><td>Pilar silt loam</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_4_SanManuelloam11.png" /></td><td>San Manuel loam</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_4_Tamantakaclay12.png" /></td><td>Tamantaka clay</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_4_Tinamagaclayloam13.png" /></td><td>Tinamaga clay loam</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_4_Umingansiltloam14.png" /></td><td>Umingan silt loam</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_4_15.png" /></td><td></td></tr></table>', layer: layer_SoilType_4},
-            {label: 'Coastal Resources<br /><table><tr><td style="text-align: center;"><img src="legend/CoastalResources_3_Corals0.png" /></td><td>Corals</td></tr><tr><td style="text-align: center;"><img src="legend/CoastalResources_3_Mangrove1.png" /></td><td>Mangrove</td></tr><tr><td style="text-align: center;"><img src="legend/CoastalResources_3_SeagrassSeaweeds2.png" /></td><td>Seagrass/Seaweeds</td></tr></table>', layer: layer_CoastalResources_3},
+            {label: '<img src="legend/SchoolFacilities_13.png" /> School Facilities', layer: layer_SchoolFacilities_13},
+            {label: 'Health Facilities<br /><table><tr><td style="text-align: center;"><img src="legend/HealthFacilities_12_BarangayHealthStation0.png" /></td><td>Barangay Health Station</td></tr><tr><td style="text-align: center;"><img src="legend/HealthFacilities_12_BirthingHome1.png" /></td><td>Birthing Home</td></tr><tr><td style="text-align: center;"><img src="legend/HealthFacilities_12_Hospital2.png" /></td><td>Hospital</td></tr><tr><td style="text-align: center;"><img src="legend/HealthFacilities_12_Infirmary3.png" /></td><td>Infirmary</td></tr><tr><td style="text-align: center;"><img src="legend/HealthFacilities_12_RuralHealthUnit4.png" /></td><td>Rural Health Unit</td></tr></table>', layer: layer_HealthFacilities_12},
+            {label: '<img src="legend/MunicipalHall_11.png" /> Municipal Hall', layer: layer_MunicipalHall_11},
+            {label: 'Rain-Induced Flood<br /><table><tr><td style="text-align: center;"><img src="legend/RainInducedFlood_10_Low0.png" /></td><td>Low</td></tr><tr><td style="text-align: center;"><img src="legend/RainInducedFlood_10_Moderate1.png" /></td><td>Moderate</td></tr><tr><td style="text-align: center;"><img src="legend/RainInducedFlood_10_High2.png" /></td><td>High</td></tr><tr><td style="text-align: center;"><img src="legend/RainInducedFlood_10_VeryHigh3.png" /></td><td>Very High</td></tr></table>', layer: layer_RainInducedFlood_10},
+            {label: 'Rain-Induced Landslide<br /><table><tr><td style="text-align: center;"><img src="legend/RainInducedLandslide_9_Low0.png" /></td><td>Low</td></tr><tr><td style="text-align: center;"><img src="legend/RainInducedLandslide_9_Moderate1.png" /></td><td>Moderate</td></tr><tr><td style="text-align: center;"><img src="legend/RainInducedLandslide_9_High2.png" /></td><td>High</td></tr><tr><td style="text-align: center;"><img src="legend/RainInducedLandslide_9_VeryHigh3.png" /></td><td>Very High</td></tr><tr><td style="text-align: center;"><img src="legend/RainInducedLandslide_9_DebrisFlow4.png" /></td><td>Debris Flow</td></tr></table>', layer: layer_RainInducedLandslide_9},
+            {label: 'Land Classification<br /><table><tr><td style="text-align: center;"><img src="legend/LandClassification_8_AlienableandDisposable0.png" /></td><td>Alienable and Disposable</td></tr><tr><td style="text-align: center;"><img src="legend/LandClassification_8_ForestlandUpland1.png" /></td><td>Forestland (Upland)</td></tr><tr><td style="text-align: center;"><img src="legend/LandClassification_8_ForestlandMangrove2.png" /></td><td>Forestland (Mangrove)</td></tr></table>', layer: layer_LandClassification_8},
+            {label: 'Climate Type<br /><table><tr><td style="text-align: center;"><img src="legend/ClimateType_7_Type30.png" /></td><td>Type 3</td></tr><tr><td style="text-align: center;"><img src="legend/ClimateType_7_Type41.png" /></td><td>Type 4</td></tr></table>', layer: layer_ClimateType_7},
+            {label: 'Geological Features<br /><table><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_6_IN10.png" /></td><td>IN1</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_6_KPg21.png" /></td><td>KPg2</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_6_N12.png" /></td><td>N1</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_6_N3Q13.png" /></td><td>N3+Q1</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_6_NI4.png" /></td><td>NI</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_6_QVP5.png" /></td><td>QVP</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_6_R6.png" /></td><td>R</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_6_SN17.png" /></td><td>SN1</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_6_SN28.png" /></td><td>SN2</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_6_UC9.png" /></td><td>UC</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_6_Unknown10.png" /></td><td>Unknown</td></tr><tr><td style="text-align: center;"><img src="legend/GeologicalFeatures_6_waterbody11.png" /></td><td>waterbody</td></tr></table>', layer: layer_GeologicalFeatures_6},
+            {label: 'Soil Type<br /><table><tr><td style="text-align: center;"><img src="legend/SoilType_5_Balutclayloam0.png" /></td><td>Balut clay loam</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_5_Buldunsandyloam1.png" /></td><td>Buldun sandy loam</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_5_Dalicanclayloam2.png" /></td><td>Dalican clay loam</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_5_Faraonclay3.png" /></td><td>Faraon clay</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_5_FaraonclayRiverwash4.png" /></td><td>Faraon clay / River wash</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_5_Hydrosol5.png" /></td><td>Hydrosol</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_5_Kabacanclay6.png" /></td><td>Kabacan clay</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_5_Langkongsandy7.png" /></td><td>Langkong sandy</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_5_Mountainsoil8.png" /></td><td>Mountain soil</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_5_Parangclayloam9.png" /></td><td>Parang clay loam</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_5_Pilarsiltloam10.png" /></td><td>Pilar silt loam</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_5_SanManuelloam11.png" /></td><td>San Manuel loam</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_5_Tamantakaclay12.png" /></td><td>Tamantaka clay</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_5_Tinamagaclayloam13.png" /></td><td>Tinamaga clay loam</td></tr><tr><td style="text-align: center;"><img src="legend/SoilType_5_Umingansiltloam14.png" /></td><td>Umingan silt loam</td></tr></table>', layer: layer_SoilType_5},
+            {label: 'Coastal Resources<br /><table><tr><td style="text-align: center;"><img src="legend/CoastalResources_4_Corals0.png" /></td><td>Corals</td></tr><tr><td style="text-align: center;"><img src="legend/CoastalResources_4_Mangrove1.png" /></td><td>Mangrove</td></tr><tr><td style="text-align: center;"><img src="legend/CoastalResources_4_SeagrassSeaweeds2.png" /></td><td>Seagrass/Seaweeds</td></tr></table>', layer: layer_CoastalResources_4},
+            {label: '<img src="legend/RoadNetwork_3.png" /> Road Network', layer: layer_RoadNetwork_3},
             {label: '<img src="legend/MunicipalBoundary_2.png" /> Municipal Boundary', layer: layer_MunicipalBoundary_2},
             {label: '<img src="legend/MunicipalWaters_1.png" /> Municipal Waters', layer: layer_MunicipalWaters_1},
             {label: "OSM Standard", layer: layer_OSMStandard_0},]
@@ -1128,29 +1386,6 @@
         });
         lay.addTo(map);
         setBounds();
-        var i = 0;
-        layer_MunicipalBoundary_2.eachLayer(function(layer) {
-            var context = {
-                feature: layer.feature,
-                variables: {}
-            };
-            layer.bindTooltip((layer.feature.properties['Mun_Name'] !== null?String('<div style="color: #000000; font-size: 10pt; font-family: \'Open Sans\', sans-serif;">' + layer.feature.properties['Mun_Name']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_MunicipalBoundary_2'});
-            labels.push(layer);
-            totalMarkers += 1;
-              layer.added = true;
-              addLabel(layer, i);
-              i++;
-        });
-        resetLabels([layer_MunicipalBoundary_2]);
-        map.on("zoomend", function(){
-            resetLabels([layer_MunicipalBoundary_2]);
-        });
-        map.on("layeradd", function(){
-            resetLabels([layer_MunicipalBoundary_2]);
-        });
-        map.on("layerremove", function(){
-            resetLabels([layer_MunicipalBoundary_2]);
-        });
         </script>
     </body>
 </html>
